@@ -6,11 +6,13 @@ local RemoteService = require(systemsFolder.RemoteService)
 local ProfileService = require(systemsFolder.ProfileService)
 local EconomyService = require(systemsFolder.EconomyService)
 local WeatherService = require(systemsFolder.WeatherService)
+local WorldStateService = require(systemsFolder.WorldStateService)
 local StoryService = require(systemsFolder.StoryService)
 
 local services = {
 	RemoteService = RemoteService,
 	ProfileService = ProfileService,
+	WorldStateService = WorldStateService,
 }
 
 RemoteService.init()
