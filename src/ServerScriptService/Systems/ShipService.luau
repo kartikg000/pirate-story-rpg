@@ -124,11 +124,20 @@ local function boardShip(services, player)
 		helm     = helm,
 		folder   = folder,
 		remoteService = services.RemoteService,
+		boardPos = hrp.CFrame,   -- saved so disembark returns here safely
 	}
 
-	-- Teleport player to helm
-	local helmCF = spawnCF * CFrame.new(-14, 18, 0)
-	hrp.CFrame   = helmCF
+	-- Wait briefly for parts to replicate to client before teleporting
+	task.delay(0.4, function()
+		if not char.Parent then return end  -- character may have respawned
+		local hrp2 = char:FindFirstChild("HumanoidRootPart")
+		if not hrp2 then return end
+		local state2 = shipStates[userId]
+		if not state2 then return end
+		-- Teleport onto the helm seat (deck top + character half-height)
+		local helmCF = state2.cframe * CFrame.new(-14, 16, 0)
+		hrp2.CFrame = helmCF
+	end)
 
 	-- ProximityPrompt on helm to disembark
 	local disembarkPP = Instance.new("ProximityPrompt")
@@ -162,13 +171,14 @@ function leaveShip(services, player)
 	local state  = shipStates[userId]
 	if not state then return end
 
-	-- Teleport player off  ship before destroying
+	-- Teleport player back to where they boarded (safe land position)
 	local char = player.Character
 	if char then
 		local hrp = char:FindFirstChild("HumanoidRootPart")
-		local rootCF = state.cframe
 		if hrp then
-			hrp.CFrame = CFrame.new(rootCF.X - 30, SHIP_WATER_Y + 20, rootCF.Z)
+			local safeCF = state.boardPos or CFrame.new(0, 50, 0)
+			-- lift slightly so they land on top rather than inside geometry
+			hrp.CFrame = safeCF + Vector3.new(0, 8, 0)
 		end
 	end
 
@@ -201,6 +211,16 @@ local function startMovementLoop()
 
 			state.cframe = newCF
 			moveParts(state.parts, newCF)
+
+			-- Carry the player with the ship (anchored parts don't do this automatically)
+			local shipPlayer = Players:GetPlayerByUserId(userId)
+			if shipPlayer and shipPlayer.Character then
+				local pHrp = shipPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if pHrp then
+					local delta = newCF * cf:Inverse()
+					pHrp.CFrame = delta * pHrp.CFrame
+				end
+			end
 		end
 	end)
 end
