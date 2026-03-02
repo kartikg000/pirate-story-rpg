@@ -16,12 +16,16 @@ local services = {
 	WorldStateService = WorldStateService,
 }
 
+print("[MainServer] Booting PirateStoryRPG services...")
+
 RemoteService.init()
 ProfileService.startAutosaveLoop()
 EconomyService.init(services)
 WeatherService.init(services)
 StoryService.init(services)
 HungerService.init(services)
+
+print("[MainServer] Services initialized")
 
 Players.PlayerAdded:Connect(function(player)
 	ProfileService.loadProfile(player)
