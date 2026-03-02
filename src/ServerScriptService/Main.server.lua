@@ -18,14 +18,23 @@ local services = {
 
 print("[MainServer] Booting PirateStoryRPG services...")
 
-RemoteService.init()
-ProfileService.startAutosaveLoop()
-EconomyService.init(services)
-WeatherService.init(services)
-StoryService.init(services)
-HungerService.init(services)
+local function safeInit(name, fn)
+	local ok, err = pcall(fn)
+	if not ok then
+		warn("[MainServer] FAILED to init " .. name .. ": " .. tostring(err))
+	else
+		print("[MainServer] OK: " .. name)
+	end
+end
 
-print("[MainServer] Services initialized")
+safeInit("RemoteService",  function() RemoteService.init() end)
+safeInit("ProfileAutosave",function() ProfileService.startAutosaveLoop() end)
+safeInit("EconomyService", function() EconomyService.init(services) end)
+safeInit("WeatherService", function() WeatherService.init(services) end)
+safeInit("StoryService",   function() StoryService.init(services) end)
+safeInit("HungerService",  function() HungerService.init(services) end)
+
+print("[MainServer] All services initialised")
 
 Players.PlayerAdded:Connect(function(player)
 	ProfileService.loadProfile(player)

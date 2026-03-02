@@ -7,7 +7,21 @@ local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
 local ProfileService = {}
 
 local STORE_NAME = "PirateStoryRPG_Profile_v1"
-local store = DataStoreService:GetDataStore(STORE_NAME)
+local store = nil
+
+local function getStore()
+	if not store then
+		local ok, result = pcall(function()
+			return DataStoreService:GetDataStore(STORE_NAME)
+		end)
+		if ok then
+			store = result
+		else
+			warn("[ProfileService] DataStore unavailable (Studio API access off?): " .. tostring(result))
+		end
+	end
+	return store
+end
 
 local profilesByUserId: {[number]: any} = {}
 local sessionLocks: {[number]: string} = {}
@@ -47,9 +61,13 @@ function ProfileService.loadProfile(player: Player)
 	local lockToken = string.format("%d_%d", player.UserId, os.time())
 	sessionLocks[player.UserId] = lockToken
 
-	local success, data = withRetry(function()
-		return store:GetAsync(getKey(player.UserId))
-	end)
+	local ds = getStore()
+	local success, data = false, nil
+	if ds then
+		success, data = withRetry(function()
+			return ds:GetAsync(getKey(player.UserId))
+		end)
+	end
 
 	local profile = data
 	if not success or type(profile) ~= "table" then
@@ -75,8 +93,10 @@ function ProfileService.saveProfile(player: Player)
 		return
 	end
 
+	local ds = getStore()
+	if not ds then return end
 	withRetry(function()
-		store:UpdateAsync(getKey(player.UserId), function(old)
+		ds:UpdateAsync(getKey(player.UserId), function(old)
 			if sessionLocks[player.UserId] ~= expectedLock then
 				return old
 			end
