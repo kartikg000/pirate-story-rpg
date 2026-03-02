@@ -144,21 +144,31 @@ local function openDialogue(speaker, lines)
 	task.delay(0.1, showNextLine)
 end
 
--- Advance on E or F or click
+-- Advance on E / F / Space / click
+-- NOTE: gp (gameProcessed) can be true when a ProximityPrompt just consumed E,
+-- so we intentionally bypass the guard whenever dialogue is actively showing.
 UserInputService.InputBegan:Connect(function(input, gp)
-	if gp then return end
+	-- When dialogue is open, intercept E/F/Space regardless of gameProcessed
+	if not isShowing then
+		if gp then return end
+	end
 	if not isShowing then return end
-	if input.KeyCode == Enum.KeyCode.E or
-	   input.KeyCode == Enum.KeyCode.F or
-	   input.UserInputType == Enum.UserInputType.MouseButton1 then
-		if typeThread then
-			-- Skip typewriter
-			task.cancel(typeThread)
-			typeThread = nil
-			dialogueLbl.Text = lineQueue[currentLine] or ""
-		else
-			showNextLine()
-		end
+
+	local isAdvanceKey = input.KeyCode == Enum.KeyCode.E
+		or input.KeyCode == Enum.KeyCode.F
+		or input.KeyCode == Enum.KeyCode.Space
+		or input.UserInputType == Enum.UserInputType.MouseButton1
+
+	if not isAdvanceKey then return end
+
+	if typeThread then
+		-- First press: skip typewriter, show full line immediately
+		task.cancel(typeThread)
+		typeThread = nil
+		dialogueLbl.Text = lineQueue[currentLine] or ""
+	else
+		-- Second press: advance to next line (or close)
+		showNextLine()
 	end
 end)
 

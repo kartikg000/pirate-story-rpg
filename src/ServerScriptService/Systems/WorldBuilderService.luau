@@ -433,6 +433,179 @@ function WorldBuilderService.init(services)
 	end
 
 	print("[WorldBuilder] ✅  Island, ship, rival ship, 15 trigger zones, 7 food pickups — built")
+
+	-- ══════════════════════════════════════════════════════════════════════════
+	-- DETAIL PASS — props, scenery, atmosphere
+	-- ══════════════════════════════════════════════════════════════════════════
+
+	-- ── Sandy beach ring around island border ─────────────────────────────────
+	part("BeachN", Vector3.new(340, 5, 30),  CFrame.new(  0, 9,  -165), "Sand yellow",  "Sand",       w)
+	part("BeachS", Vector3.new(340, 5, 30),  CFrame.new(  0, 9,   165), "Sand yellow",  "Sand",       w)
+	part("BeachE", Vector3.new(30, 5,  280), CFrame.new( 165, 9,    0), "Sand yellow",  "Sand",       w)
+	part("BeachW", Vector3.new(30, 5,  280), CFrame.new(-165, 9,    0), "Sand yellow",  "Sand",       w)
+
+	-- ── More palm trees (variety of sizes) ───────────────────────────────────
+	local PALMS = {
+		{  -140, 16,  40, 1.0},  {  -150, 16, -30, 0.8},
+		{   -60, 16,  55, 1.1},  {   -70, 16, -55, 0.9},
+		{    50, 16,  55, 1.2},  {   -45, 16,   0, 0.7},
+		{   60,  16, -50, 1.0},  {  140,  16,  30, 0.9},
+	}
+	for i, tp in PALMS do
+		local s = tp[4]
+		part("Palm"..i.."Trunk", Vector3.new(2*s, 20*s, 2*s), CFrame.new(tp[1], 16+10*s, tp[3])*CFrame.Angles(0,0,0.06*i), "Reddish brown",  "Bark",  w)
+		part("Palm"..i.."Top",   Vector3.new(12*s, 7*s, 12*s), CFrame.new(tp[1]+1, 16+21*s, tp[3]),                          "Bright green",   "Grass", w)
+		part("Palm"..i.."Top2",  Vector3.new(8*s,  4*s, 10*s), CFrame.new(tp[1]-2, 16+22*s, tp[3]+1)*CFrame.Angles(0,0.5,0.1),"Medium green",   "Grass", w)
+	end
+
+	-- ── Lighthouse on NW corner ───────────────────────────────────────────────
+	part("LighthouseBase",  Vector3.new(10, 30, 10),  CFrame.new(-140, 27, -120), "White",          "Brick",       w)
+	part("LighthouseMid",   Vector3.new(8,  16, 8),   CFrame.new(-140, 48, -120), "Institutional white","Brick",   w)
+	part("LighthouseTop",   Vector3.new(8,  6,  8),   CFrame.new(-140, 59, -120), "Bright red",     "SmoothPlastic",w)
+	part("LighthouseLight", Vector3.new(4,  4,  4),   CFrame.new(-140, 63, -120), "Bright yellow",  "Neon",        w)
+	local lhLight = Instance.new("PointLight")
+	lhLight.Brightness = 8; lhLight.Color = Color3.fromRGB(255, 240, 180); lhLight.Range = 120; lhLight.Shadows = true
+	lhLight.Parent = w.LighthouseLight
+	billboard(w.LighthouseLight, "⚓ Lighthouse", 5)
+
+	-- ── Village detail — barrels, crates, fence, fire ─────────────────────────
+	-- Barrels
+	for i = 1, 3 do
+		local b = part("Barrel"..i, Vector3.new(3, 4, 3), CFrame.new(-115+(i*5), 18, 28), "Reddish brown", "WoodPlanks", w)
+		b.Shape = Enum.PartType.Cylinder
+	end
+	-- Water barrel
+	local wb = part("WaterBarrel", Vector3.new(3, 5, 3), CFrame.new(-90, 18, 28), "Dark blue", "WoodPlanks", w)
+	wb.Shape = Enum.PartType.Cylinder
+	-- Crates at stall
+	part("Crate1", Vector3.new(5, 5, 5), CFrame.new(-107, 19, 20), "Brick yellow",  "WoodPlanks", w)
+	part("Crate2", Vector3.new(5, 5, 5), CFrame.new(-113, 19, 20), "Dark orange",   "WoodPlanks", w)
+	part("Crate3", Vector3.new(5, 4, 5), CFrame.new(-107, 24, 20), "Brick yellow",  "WoodPlanks", w)
+	-- Fence posts around village
+	for i = 0, 7 do
+		part("FencePost"..i, Vector3.new(1, 5, 1), CFrame.new(-140 + i*10, 19, -30), "Brown", "WoodPlanks", w)
+		if i < 7 then
+			part("FenceRail"..i, Vector3.new(10, 1, 0.5), CFrame.new(-135 + i*10, 21, -30), "Brown", "WoodPlanks", w)
+		end
+	end
+	-- Village campfire
+	local fireBase  = part("CampfireBase",  Vector3.new(4, 1, 4), CFrame.new(-90, 18, -22), "Medium dark flesh", "WoodPlanks", w)
+	local fireLogs  = part("CampfireLogs",  Vector3.new(3, 2, 3), CFrame.new(-90, 19, -22), "Reddish brown",     "WoodPlanks", w)
+	fireLogs.Shape  = Enum.PartType.Ball
+	local fireGlow  = part("CampfireGlow",  Vector3.new(2, 3, 2), CFrame.new(-90, 21, -22), "Bright orange",     "Neon",       w)
+	fireGlow.Shape  = Enum.PartType.Ball
+	local fireLight = Instance.new("PointLight")
+	fireLight.Brightness = 5; fireLight.Color = Color3.fromRGB(255, 130, 40); fireLight.Range = 18; fireLight.Shadows = true
+	fireLight.Parent = fireGlow
+	local smoke = Instance.new("Smoke")
+	smoke.Color = Color3.fromRGB(120, 110, 100)
+	smoke.Opacity = 0.12; smoke.RiseVelocity = 5; smoke.Size = 1.5
+	smoke.Parent = fireGlow
+
+	-- ── Harbor & dock detail ──────────────────────────────────────────────────
+	-- Crates at dock
+	for i = 1, 4 do
+		part("DockCrate"..i, Vector3.new(6, 5, 6),
+			CFrame.new(90 + (i%2)*7, 20, 12-(i*6)),
+			i%2==0 and "Dark orange" or "Brick yellow", "WoodPlanks", w)
+	end
+	-- Dock railings
+	for i = 0, 5 do
+		part("DockRailL"..i, Vector3.new(1, 5, 1), CFrame.new(80 + i*7, 21, -13), "Reddish brown", "WoodPlanks", w)
+		part("DockRailR"..i, Vector3.new(1, 5, 1), CFrame.new(80 + i*7, 21,  13), "Reddish brown", "WoodPlanks", w)
+	end
+	part("DockRailTop",  Vector3.new(42, 1, 1), CFrame.new(100, 24, -13), "Reddish brown", "WoodPlanks", w)
+	part("DockRailTopR", Vector3.new(42, 1, 1), CFrame.new(100, 24,  13), "Reddish brown", "WoodPlanks", w)
+	-- Anchor
+	part("Anchor", Vector3.new(5, 9, 2), CFrame.new(88, 19, 0), "Dark stone grey", "Metal", w)
+	billboard(w.Anchor, "⚓ Anchor", 7)
+	-- Cannon on dock
+	local cannon = part("DockCannon", Vector3.new(5, 5, 12), CFrame.new(130, 20, -4)*CFrame.Angles(0, 0.3, 0), "Dark stone grey", "Metal", w)
+	cannon.Shape = Enum.PartType.Cylinder
+	-- Cannonballs pile
+	for i = 1, 3 do
+		local cb = part("Cannonball"..i, Vector3.new(2.5,2.5,2.5), CFrame.new(126+(i*1.5), 19, -8), "Dark stone grey", "Metal", w)
+		cb.Shape = Enum.PartType.Ball
+	end
+	-- Dock lanterns
+	for i = 0, 2 do
+		local dlp = part("DockLanternPost"..i, Vector3.new(1, 10, 1), CFrame.new(85+i*20, 24, -15), "Reddish brown", "WoodPlanks", w)
+		local dll = part("DockLantern"..i,     Vector3.new(2, 3, 2),  CFrame.new(85+i*20, 30, -15), "Bright yellow",  "Neon",       w)
+		local dLight = Instance.new("PointLight")
+		dLight.Brightness = 3; dLight.Color = Color3.fromRGB(255, 200, 80); dLight.Range = 22; dLight.Shadows = true
+		dLight.Parent = dll
+	end
+
+	-- ── Ship detail ───────────────────────────────────────────────────────────
+	-- Rope coils
+	part("RopeCoil1", Vector3.new(4, 1, 4), CFrame.new(155, 21, 6), "Brick yellow",      "Fabric", w)
+	part("RopeCoil2", Vector3.new(3, 1, 3), CFrame.new(175, 21, -7),"Brick yellow",      "Fabric", w)
+	-- Ship cannons on deck (both sides)
+	for i = 0, 1 do
+		local sc = part("ShipCannon"..i..".L", Vector3.new(4, 4, 11), CFrame.new(158+i*16, 21, 9)*CFrame.Angles(0,0,0), "Dark stone grey", "Metal", w)
+		sc.Shape = Enum.PartType.Cylinder
+		local sc2 = sc:Clone(); sc2.Name = "ShipCannon"..i..".R"; sc2.CFrame = CFrame.new(158+i*16, 21, -9)*CFrame.Angles(0,math.pi,0); sc2.Parent = w
+	end
+	-- Treasure chest on deck (quest reward visual)
+	part("TreasureChestBody",  Vector3.new(6, 4, 4), CFrame.new(172, 22, 5), "Dark orange",   "WoodPlanks",   w)
+	part("TreasureChestLid",   Vector3.new(6, 2, 4), CFrame.new(172, 25, 5)*CFrame.Angles(0.3,0,0), "Dark orange",   "WoodPlanks",   w)
+	part("TreasureChestGold",  Vector3.new(5, 1, 3), CFrame.new(172, 23, 5), "Bright yellow", "Neon",          w).Transparency = 0.3
+	local tcLight = Instance.new("PointLight")
+	tcLight.Brightness = 2; tcLight.Color = Color3.fromRGB(255, 215, 60); tcLight.Range = 10
+	tcLight.Parent = w.TreasureChestGold
+	billboard(w.TreasureChestBody, "🏴 Treasure Chest", 5)
+	-- Ship flag
+	part("ShipFlag", Vector3.new(8, 5, 0.4), CFrame.new(165, 100, 0)*CFrame.Angles(0,0,-0.05), "Bright blue", "Fabric", w)
+	part("ShipFlagSkull", Vector3.new(5, 3, 0.4), CFrame.new(165, 100, 0)*CFrame.Angles(0,0,-0.05), "White", "Neon", w).Transparency = 0.4
+	-- Ship steering cabin back wall
+	part("SteeringCabin", Vector3.new(14, 10, 3), CFrame.new(147, 24, 0), "Reddish brown", "Wood", w)
+	-- Hanging lanterns x2
+	part("HangLantern1", Vector3.new(2, 3, 2), CFrame.new(160, 27, 8),  "Bright yellow", "Neon", w)
+	part("HangLantern2", Vector3.new(2, 3, 2), CFrame.new(160, 27, -8), "Bright yellow", "Neon", w)
+	for _, ln in {"HangLantern1","HangLantern2"} do
+		local hl = Instance.new("PointLight"); hl.Brightness=2.5; hl.Color=Color3.fromRGB(255,190,70); hl.Range=14; hl.Parent=w[ln]
+	end
+
+	-- ── Rock formations and coral near island ─────────────────────────────────
+	local ROCKS = {{-160,5,-90,9,16},{170,5,-80,7,12},{-180,5,100,11,18},{200,5,80,6,10},{-170,5,50,8,14}}
+	for i, r in ROCKS do
+		part("Rock"..i,    Vector3.new(r[4], r[5],  r[4]), CFrame.new(r[1], -3+r[5]/2, r[3]),  "Dark stone grey", "Rock",         w)
+		part("RockTop"..i, Vector3.new(r[4]-2, 5, r[4]-2), CFrame.new(r[1]+1, r[5]-1, r[3]-1),"Medium stone grey","SmoothPlastic",w)
+	end
+	-- Coral patches (neon for underwater feel in shallow water)
+	local CORALS = {{160,-5,-40,"Cyan"},{175,-5,-55,"Hot pink"},{190,-5,-45,"Bright orange"},{155,-5,-65,"Cyan"}}
+	for i, c in CORALS do
+		local co = part("Coral"..i, Vector3.new(5,8,5), CFrame.new(c[1], c[2]+4, c[3]), c[4], "Neon", w)
+		co.Transparency = 0.35
+	end
+
+	-- ── Grotto atmosphere ─────────────────────────────────────────────────────
+	-- Bioluminescent walls
+	for i = 1, 6 do
+		local angle = (i/6) * math.pi * 2
+		local cx = 165 + math.cos(angle)*9
+		local cz = -92 + math.sin(angle)*9
+		local gwall = part("GrottoWall"..i, Vector3.new(4, 18, 4), CFrame.new(cx, 2, cz), "Dark blue", "SmoothPlastic", w)
+		gwall.Transparency = 0.15
+		local glow = part("GrottoGlow"..i, Vector3.new(2, 2, 2), CFrame.new(cx, 5+i*1.5, cz), "Cyan", "Neon", w)
+		glow.Shape = Enum.PartType.Ball
+		glow.Transparency = 0.3
+		local gl = Instance.new("PointLight"); gl.Color = Color3.fromRGB(60,220,220); gl.Brightness=1.5; gl.Range=14; gl.Parent=glow
+	end
+
+	-- ── Rival ship detail ─────────────────────────────────────────────────────
+	-- Rival skulls on hull
+	part("RivalSail",   Vector3.new(0.5, 28, 18), CFrame.new(330, 50, 60),  "Dark stone grey","Fabric", w)
+	part("RivalCabin",  Vector3.new(14, 10, 3),   CFrame.new(316, 24, 60),  "Dark stone grey","Wood",   w)
+	-- Skulls on railing (dark neon orbs)
+	for i = 0, 3 do
+		local skull = part("RivalSkull"..i, Vector3.new(2,2,2), CFrame.new(320+i*8, 22, 71), "Dark stone grey", "SmoothPlastic", w)
+		skull.Shape = Enum.PartType.Ball
+	end
+	local rivalLight = Instance.new("PointLight"); rivalLight.Brightness=1.5; rivalLight.Color=Color3.fromRGB(180,30,30); rivalLight.Range=40; rivalLight.Parent=w.RivalMast
+
+	print("[WorldBuilder] ✅  Detail pass complete — lighthouse, palms, shore, barrels, crates, dock, cannons, treasure chest, grotto, coral, rival details built")
 end
 
 return WorldBuilderService
+

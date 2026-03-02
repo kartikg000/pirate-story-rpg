@@ -62,7 +62,19 @@ function HungerService.feedPlayer(services, player: Player, amount: number): boo
 		return false
 	end
 
+	local before = profile.hunger
 	profile.hunger = clampHunger(profile.hunger + amount)
+
+	-- Immediately push the updated state so the HUD reflects the gain at once
+	local playerStateRemote = services.RemoteService.getRemote(RemoteNames.PlayerStateUpdated)
+	playerStateRemote:FireClient(player, {
+		hunger     = profile.hunger,
+		coins      = profile.coins,
+		storyLevel = profile.storyLevel,
+	})
+
+	print(string.format("[HungerService] %s ate food: %.1f → %.1f (+%d)",
+		player.Name, before, profile.hunger, amount))
 	return true
 end
 
