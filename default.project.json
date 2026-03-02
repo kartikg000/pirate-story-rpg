@@ -1,0 +1,30 @@
+{
+    "name": "PirateStoryRPG",
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "$className": "ReplicatedStorage",
+            "Shared": {
+                "$path": "src/ReplicatedStorage/Shared"
+            }
+        },
+        "ServerScriptService": {
+            "$className": "ServerScriptService",
+            "Game": {
+                "$path": "src/ServerScriptService"
+            }
+        },
+        "StarterPlayer": {
+            "$className": "StarterPlayer",
+            "StarterPlayerScripts": {
+                "$path": "src/StarterPlayer/StarterPlayerScripts"
+            }
+        },
+        "StarterGui": {
+            "$className": "StarterGui",
+            "UI": {
+                "$path": "src/StarterGui"
+            }
+        }
+    }
+}
