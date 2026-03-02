@@ -58,10 +58,10 @@ local generatedChunks = {}  -- [key] = true
 local function chunkKey(cx, cz) return cx .. "," .. cz end
 
 local function seededRand(cx, cz, idx)
-	-- Simple deterministic hash → 0..1
-	local v = (cx * 73856093) ~ (cz * 19349663) ~ (idx * 83492791)
-	v = v % 1000000
-	return v / 1000000
+	-- Pure arithmetic hash → 0..1  (no bitwise ops needed)
+	local v = math.abs(cx * 374761393 + cz * 1234567891 + idx * 2654435761)
+	v = (v % 999983 + 1)
+	return (v % 997) / 997
 end
 
 local ws = game:GetService("Workspace")
@@ -117,12 +117,7 @@ end
 -- ══════════════════════════════════════════════════════════════════════════════
 -- ISLAND BUILDERS — one function per theme
 -- ══════════════════════════════════════════════════════════════════════════════
-type BuildCtx = {
-	f: Instance,      -- parent folder
-	ox: number, oz: number,  -- island centre world coords
-	r: (idx: number) -> number,  -- seeded rand 0..1
-	services: any,
-}
+-- ctx table: f=parentFolder, ox/oz=world centre, r=seededRand fn, services=servicesTable
 
 local function addFood(ctx, x, z, foodType)
 	local colors = {Coconut="Sand yellow", Mango="Bright orange", Fish="Bright blue", Bread="Brick yellow", Meat="Bright red"}

@@ -12,7 +12,7 @@ local lp = Players.LocalPlayer
 local playerGui = lp:WaitForChild("PlayerGui")
 
 -- ── Wait for RemoteService remotes ───────────────────────────────────────────
-local remotesFolder = ReplicatedStorage:WaitForChild("Remotes", 20)
+local remotesFolder = ReplicatedStorage:WaitForChild("GameRemotes", 20)
 
 local function getRemote(name)
 	if not remotesFolder then return nil end

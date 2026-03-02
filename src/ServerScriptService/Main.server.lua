@@ -33,18 +33,28 @@ createSpawnFloor()
 
 local systemsFolder = script.Parent.Systems
 
-local RemoteService         = require(systemsFolder.RemoteService)
-local ProfileService        = require(systemsFolder.ProfileService)
-local EconomyService        = require(systemsFolder.EconomyService)
-local WeatherService        = require(systemsFolder.WeatherService)
-local WorldStateService     = require(systemsFolder.WorldStateService)
-local StoryService          = require(systemsFolder.StoryService)
-local HungerService         = require(systemsFolder.HungerService)
-local WorldBuilderService   = require(systemsFolder.WorldBuilderService)
-local CinematicLightingService = require(systemsFolder.CinematicLightingService)
-local PowerService          = require(systemsFolder.PowerService)
-local ShipService           = require(systemsFolder.ShipService)
-local IslandGeneratorService = require(systemsFolder.IslandGeneratorService)
+local function safeRequire(name)
+	local ok, result = pcall(require, systemsFolder[name])
+	if not ok then
+		warn("[MainServer] FAILED to require " .. name .. ": " .. tostring(result))
+		return nil
+	end
+	print("[MainServer] required " .. name)
+	return result
+end
+
+local RemoteService         = safeRequire("RemoteService")
+local ProfileService        = safeRequire("ProfileService")
+local EconomyService        = safeRequire("EconomyService")
+local WeatherService        = safeRequire("WeatherService")
+local WorldStateService     = safeRequire("WorldStateService")
+local StoryService          = safeRequire("StoryService")
+local HungerService         = safeRequire("HungerService")
+local WorldBuilderService   = safeRequire("WorldBuilderService")
+local CinematicLightingService = safeRequire("CinematicLightingService")
+local PowerService          = safeRequire("PowerService")
+local ShipService           = safeRequire("ShipService")
+local IslandGeneratorService = safeRequire("IslandGeneratorService")
 
 local services = {
 	RemoteService       = RemoteService,
@@ -59,7 +69,8 @@ local services = {
 
 print("[MainServer] Booting One Piece RPG services...")
 
-local function safeInit(name, fn)
+local function safeInit(name, svc, fn)
+	if not svc then warn("[MainServer] SKIP (nil) " .. name); return end
 	local ok, err = pcall(fn)
 	if not ok then
 		warn("[MainServer] FAILED to init " .. name .. ": " .. tostring(err))
@@ -68,28 +79,28 @@ local function safeInit(name, fn)
 	end
 end
 
-safeInit("RemoteService",         function() RemoteService.init() end)
-safeInit("CinematicLighting",    function() CinematicLightingService.init() end)
-safeInit("ProfileAutosave",      function() ProfileService.startAutosaveLoop() end)
-safeInit("EconomyService",       function() EconomyService.init(services) end)
-safeInit("WeatherService",       function() WeatherService.init(services) end)
-safeInit("StoryService",         function() StoryService.init(services) end)
-safeInit("HungerService",        function() HungerService.init(services) end)
-safeInit("ShipService",           function() ShipService.init(services) end)
-safeInit("WorldBuilderService",  function() WorldBuilderService.init(services) end)
-safeInit("PowerService",         function() PowerService.init(services) end)
-safeInit("IslandGenerator",      function() IslandGeneratorService.init(services) end)
+safeInit("RemoteService",        RemoteService,           function() RemoteService.init() end)
+safeInit("CinematicLighting",    CinematicLightingService,function() CinematicLightingService.init() end)
+safeInit("ProfileAutosave",      ProfileService,          function() ProfileService.startAutosaveLoop() end)
+safeInit("EconomyService",       EconomyService,          function() EconomyService.init(services) end)
+safeInit("WeatherService",       WeatherService,          function() WeatherService.init(services) end)
+safeInit("StoryService",         StoryService,            function() StoryService.init(services) end)
+safeInit("HungerService",        HungerService,           function() HungerService.init(services) end)
+safeInit("ShipService",          ShipService,             function() ShipService.init(services) end)
+safeInit("WorldBuilderService",  WorldBuilderService,     function() WorldBuilderService.init(services) end)
+safeInit("PowerService",         PowerService,            function() PowerService.init(services) end)
+safeInit("IslandGenerator",      IslandGeneratorService,  function() IslandGeneratorService.init(services) end)
 
 print("[MainServer] All services initialised")
 
 Players.PlayerAdded:Connect(function(player)
-	ProfileService.loadProfile(player)
-	HungerService.sendCurrentState(services, player)
-	StoryService.sendCurrentState(services, player)
+	if ProfileService  then ProfileService.loadProfile(player) end
+	if HungerService   then HungerService.sendCurrentState(services, player) end
+	if StoryService    then StoryService.sendCurrentState(services, player) end
 end)
 
 for _, player in Players:GetPlayers() do
-	ProfileService.loadProfile(player)
-	HungerService.sendCurrentState(services, player)
-	StoryService.sendCurrentState(services, player)
+	if ProfileService  then ProfileService.loadProfile(player) end
+	if HungerService   then HungerService.sendCurrentState(services, player) end
+	if StoryService    then StoryService.sendCurrentState(services, player) end
 end

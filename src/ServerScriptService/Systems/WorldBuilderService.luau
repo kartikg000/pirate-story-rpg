@@ -612,8 +612,10 @@ function WorldBuilderService.init(services)
 
 	-- ── Rival ship detail ─────────────────────────────────────────────────────
 	-- Rival skulls on hull
+	-- Rival ship mast light
 	part("RivalSail",   Vector3.new(0.5, 28, 18), CFrame.new(330, 50, 60),  "Dark stone grey","Fabric", w)
 	part("RivalCabin",  Vector3.new(14, 10, 3),   CFrame.new(316, 24, 60),  "Dark stone grey","Wood",   w)
+	part("RivalMast",   Vector3.new(3,  50,  3),  CFrame.new(330, 40, 60),  "Reddish brown",  "WoodPlanks", w)
 	-- Skulls on railing (dark neon orbs)
 	for i = 0, 3 do
 		local skull = part("RivalSkull"..i, Vector3.new(2,2,2), CFrame.new(320+i*8, 22, 71), "Dark stone grey", "SmoothPlastic", w)
