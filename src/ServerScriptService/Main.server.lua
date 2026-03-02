@@ -2,18 +2,21 @@ local Players = game:GetService("Players")
 
 local systemsFolder = script.Parent.Systems
 
-local RemoteService = require(systemsFolder.RemoteService)
-local ProfileService = require(systemsFolder.ProfileService)
-local EconomyService = require(systemsFolder.EconomyService)
-local WeatherService = require(systemsFolder.WeatherService)
-local WorldStateService = require(systemsFolder.WorldStateService)
-local StoryService = require(systemsFolder.StoryService)
-local HungerService = require(systemsFolder.HungerService)
+local RemoteService       = require(systemsFolder.RemoteService)
+local ProfileService      = require(systemsFolder.ProfileService)
+local EconomyService      = require(systemsFolder.EconomyService)
+local WeatherService      = require(systemsFolder.WeatherService)
+local WorldStateService   = require(systemsFolder.WorldStateService)
+local StoryService        = require(systemsFolder.StoryService)
+local HungerService       = require(systemsFolder.HungerService)
+local WorldBuilderService = require(systemsFolder.WorldBuilderService)
 
 local services = {
-	RemoteService = RemoteService,
-	ProfileService = ProfileService,
-	WorldStateService = WorldStateService,
+	RemoteService       = RemoteService,
+	ProfileService      = ProfileService,
+	WorldStateService   = WorldStateService,
+	HungerService       = HungerService,
+	StoryService        = StoryService,
 }
 
 print("[MainServer] Booting PirateStoryRPG services...")
@@ -27,12 +30,13 @@ local function safeInit(name, fn)
 	end
 end
 
-safeInit("RemoteService",  function() RemoteService.init() end)
-safeInit("ProfileAutosave",function() ProfileService.startAutosaveLoop() end)
-safeInit("EconomyService", function() EconomyService.init(services) end)
-safeInit("WeatherService", function() WeatherService.init(services) end)
-safeInit("StoryService",   function() StoryService.init(services) end)
-safeInit("HungerService",  function() HungerService.init(services) end)
+safeInit("RemoteService",      function() RemoteService.init() end)
+safeInit("ProfileAutosave",   function() ProfileService.startAutosaveLoop() end)
+safeInit("EconomyService",    function() EconomyService.init(services) end)
+safeInit("WeatherService",    function() WeatherService.init(services) end)
+safeInit("StoryService",      function() StoryService.init(services) end)
+safeInit("HungerService",     function() HungerService.init(services) end)
+safeInit("WorldBuilderService",function() WorldBuilderService.init(services) end)
 
 print("[MainServer] All services initialised")
 
