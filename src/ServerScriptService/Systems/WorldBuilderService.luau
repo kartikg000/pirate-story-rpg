@@ -334,14 +334,21 @@ function WorldBuilderService.init(services)
 	boardArlongPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "destroy_arlong_park") end)
 
 	-- ──────────────────────────────────────────────────────────────────────────
-	-- SPAWN LOCATION
-	local sp = Instance.new("SpawnLocation")
-	sp.Size        = Vector3.new(16, 1, 16)
-	sp.CFrame      = CFrame.new(-90, 19, 35)
-	sp.BrickColor  = BrickColor.new("Bright yellow")
-	sp.Neutral     = true
-	sp.Duration    = 0
-	sp.Parent      = ws
+	-- SPAWN LOCATION (world-visible version; invisible safety one already exists)
+	local existingSP = ws:FindFirstChild("SpawnLocation")
+	if existingSP then
+		-- Update position/appearance now that world is built; keep Transparency=1
+		existingSP.CFrame = CFrame.new(-90, 17, 10)
+	else
+		local sp = Instance.new("SpawnLocation")
+		sp.Size        = Vector3.new(16, 1, 16)
+		sp.CFrame      = CFrame.new(-90, 17, 10)
+		sp.BrickColor  = BrickColor.new("Bright yellow")
+		sp.Neutral     = true
+		sp.Duration    = 0
+		sp.Anchored    = true
+		sp.Parent      = ws
+	end
 
 	-- ── TRIGGER ZONES (One Piece) ────────────────────────────────────────────
 	-- Arc 1, Level 1 — Romance Dawn

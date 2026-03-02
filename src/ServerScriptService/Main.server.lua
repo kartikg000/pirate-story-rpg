@@ -1,4 +1,35 @@
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- CRITICAL: Create SpawnLocation and safety floor BEFORE any service loads
+-- so the player character always has somewhere to land on first spawn.
+-- ══════════════════════════════════════════════════════════════════════════════
+local function createSpawnFloor()
+	-- Safety ground slab (invisible, covers spawn area while world builds)
+	local floor = Instance.new("Part")
+	floor.Name     = "SafetyFloor"
+	floor.Size     = CFrame and Vector3.new(400, 4, 400) or Vector3.new(400, 4, 400)
+	floor.CFrame   = CFrame.new(-90, 13, 0)
+	floor.Anchored = true
+	floor.CanCollide = true
+	floor.Transparency = 1          -- invisible; world geometry will cover it
+	floor.BrickColor = BrickColor.new("Medium green")
+	floor.Parent   = Workspace
+
+	-- SpawnLocation sitting on top of the safety floor
+	local sp = Instance.new("SpawnLocation")
+	sp.Name       = "SpawnLocation"
+	sp.Size       = Vector3.new(16, 1, 16)
+	sp.CFrame     = CFrame.new(-90, 16, 10)
+	sp.BrickColor = BrickColor.new("Bright yellow")
+	sp.Neutral    = true
+	sp.Duration   = 0
+	sp.Anchored   = true
+	sp.Transparency = 1            -- hidden; world geometry covers it
+	sp.Parent     = Workspace
+end
+createSpawnFloor()
 
 local systemsFolder = script.Parent.Systems
 
