@@ -139,6 +139,16 @@ local NPC_DIALOGUE = {
 		[2] = {"The Going Merry will hold. I reinforced the hull myself.", "...Mostly myself. Zoro watched."},
 		[3] = {"Five thousand Fishmen surround the island! I can handle it!", "...I'll handle the ones on the left side at least."},
 	},
+	Sanji = {
+		[1] = {"You need a cook? I make the best food on the East Blue.", "...And I'll kick anyone who wastes it."},
+		[2] = {"Don Krieg wants to destroy the Baratie. Over my dead body.", "This restaurant is my home. No pirate touches it."},
+		[3] = {"Nami-san needs our help. That's all I need to hear.", "Don't slow me down."},
+	},
+	Chopper = {
+		[1] = {"I'm not cute. I'm a doctor who happens to eat a Devil Fruit.", "Don't pat my head. ...Well, maybe once is okay."},
+		[2] = {"Drum Island was cold but I learned everything from Dr. Hiluluk.", "I'll cure any disease. That was his dream. Now it's mine."},
+		[3] = {"My Rumble Ball lets me transform six forms.", "Horn Point for charging, Heavy Point for power — choose wisely!"},
+	},
 }
 
 local function fireDialogue(remoteService, player, speaker, services)
@@ -205,25 +215,28 @@ function WorldBuilderService.init(services)
 		part("TreeTrunk"..tp[1], Vector3.new(4,22,4), CFrame.new(tp[1], 25, tp[3]), "Reddish brown", "WoodPlanks", w)
 		part("TreeTop" ..tp[1], Vector3.new(16,14,16),CFrame.new(tp[1], 42, tp[3]), "Bright green",  "Grass",      w)
 	end
-	-- Straw Hat crew NPCs (Zoro / Nami / Usopp)
+	-- Straw Hat crew NPCs — each triggers their own quest step when talked to
 	local CREW = {
-		{name="Zoro",  color="Bright green",  isQuestNPC=true},
-		{name="Nami",  color="Bright orange", isQuestNPC=false},
-		{name="Usopp", color="Tan",           isQuestNPC=false},
+		{name="Zoro",  color="Bright green",  questStep="meet_zoro",      pos=Vector3.new(-8,  21, -10)},
+		{name="Nami",  color="Bright orange", questStep="find_nami",      pos=Vector3.new(2,   21, -10)},
+		{name="Usopp", color="Tan",           questStep="recruit_usopp",  pos=Vector3.new(12,  21, -10)},
+		{name="Sanji", color="Bright yellow", questStep="recruit_sanji",  pos=Vector3.new(22,  21, -10)},
+		{name="Chopper",color="Bright red",   questStep="recruit_chopper",pos=Vector3.new(32,  21, -10)},
 	}
-	for i, c in CREW do
-		local npcPart = part(c.name.."_NPC", Vector3.new(4, 10, 4), CFrame.new(-18+(i*10), 21, -10), c.color, "SmoothPlastic", w)
+	for _, c in CREW do
+		local npcPart = part(c.name.."_NPC", Vector3.new(4, 10, 4), CFrame.new(c.pos), c.color, "SmoothPlastic", w)
 		billboard(npcPart, c.name, 7)
-		local eyeDot = part(c.name.."_Eyes", Vector3.new(2.5,1,0.5), CFrame.new(-18+(i*10), 26, -10+(-0.5)), "White", "Neon", w)
+		local eyeDot = part(c.name.."_Eyes", Vector3.new(2.5, 1, 0.5),
+			CFrame.new(c.pos.X, c.pos.Y+5, c.pos.Z-2), "White", "Neon", w)
 		eyeDot.Transparency = 0
 		local npcPP = prompt(npcPart, "Talk", c.name, 11)
 		local cname = c.name
-		local isQN  = c.isQuestNPC
+		local cstep = c.questStep
 		npcPP.Triggered:Connect(function(p)
+			-- Always show character dialogue
 			fireDialogue(remoteService, p, cname, services)
-			if isQN then
-				storyService.handleQuestAction(services, p, "meet_zoro")
-			end
+			-- Advance quest step if it's currently active
+			storyService.handleQuestAction(services, p, cstep)
 		end)
 	end
 
@@ -253,6 +266,10 @@ function WorldBuilderService.init(services)
 	wfl.Parent = shipWheel
 	part("ShipLantern",  Vector3.new(2, 3, 2),      CFrame.new(178,      23, 0),   "Bright yellow",  "Neon",        w)
 	billboard(shipWheel, "⚓ Going Merry", 5)
+	-- ShipService boarding prompt (WASD sailing)
+	if services.ShipService then
+		services.ShipService.addBoardingPrompt(services, shipWheel)
+	end
 	local wheelPP = prompt(shipWheel, "Sail", "Ship's Wheel", 10)
 	-- Wheel handles arc-progression steps
 	wheelPP.Triggered:Connect(function(p)

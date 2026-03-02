@@ -11,6 +11,10 @@ local RemoteNames = {
 	RequestUseAbility    = "RequestUseAbility",
 	PowerStateUpdated    = "PowerStateUpdated",
 	AbilityVfx           = "AbilityVfx",
+	-- Ship system
+	ShipControl          = "ShipControl",   -- client → server {throttle, steer}
+	ShipBoarded          = "ShipBoarded",   -- server → client
+	ShipLeft             = "ShipLeft",      -- server → client
 }
 
 return RemoteNames
