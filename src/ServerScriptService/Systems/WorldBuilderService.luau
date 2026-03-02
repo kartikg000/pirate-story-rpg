@@ -60,17 +60,114 @@ end
 
 local function zone(name, size, pos, labelText, parent)
 	local z = part(name .. "_Zone", size, CFrame.new(pos), "Bright yellow", "Neon", parent)
-	z.Transparency = 0.75
+	z.Transparency = 0.82
 	z.CanCollide   = false
-	billboard(z, "📍 " .. labelText, size.Y / 2 + 3)
+	-- Cinematic zone billboard
+	local bg    = Instance.new("BillboardGui")
+	bg.Size          = UDim2.new(0, 270, 0, 54)
+	bg.StudsOffset   = Vector3.new(0, size.Y / 2 + 4.5, 0)
+	bg.AlwaysOnTop   = false
+	bg.MaxDistance   = 55
+	bg.Parent        = z
+	local frame = Instance.new("Frame")
+	frame.Size               = UDim2.new(1, 0, 1, 0)
+	frame.BackgroundColor3   = Color3.fromRGB(5, 8, 18)
+	frame.BackgroundTransparency = 0.08
+	frame.BorderSizePixel    = 0
+	frame.Parent             = bg
+	local fc = Instance.new("UICorner"); fc.CornerRadius = UDim.new(0,8); fc.Parent = frame
+	local acc = Instance.new("Frame")
+	acc.Size               = UDim2.new(0, 3, 0.65, 0)
+	acc.Position           = UDim2.new(0, 6, 0.175, 0)
+	acc.BackgroundColor3   = Color3.fromRGB(255, 215, 60)
+	acc.BorderSizePixel    = 0
+	acc.Parent             = frame
+	local ac = Instance.new("UICorner"); ac.CornerRadius = UDim.new(0,2); ac.Parent = acc
+	local lbl = Instance.new("TextLabel")
+	lbl.Size               = UDim2.new(1, -18, 1, 0)
+	lbl.Position           = UDim2.fromOffset(14, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.TextColor3         = Color3.fromRGB(255, 228, 80)
+	lbl.Font               = Enum.Font.GothamBold
+	lbl.TextSize           = 15
+	lbl.TextWrapped        = true
+	lbl.Text               = labelText
+	lbl.Parent             = frame
 	return z
 end
 
+-- ProximityPrompt helper
+local function prompt(parent, actionText, objectText, dist)
+	local pp = Instance.new("ProximityPrompt")
+	pp.ActionText            = actionText or "Interact"
+	pp.ObjectText            = objectText or ""
+	pp.MaxActivationDistance = dist or 10
+	pp.HoldDuration          = 0
+	pp.RequiresLineOfSight   = false
+	pp.Parent                = parent
+	return pp
+end
+
 -- ── main build ───────────────────────────────────────────────────────────────
+-- ── NPC dialogue tables (level-keyed) ────────────────────────────────────────
+local NPC_DIALOGUE = {
+	Sam = {
+		[1] = {
+			"(whispering) Listen — the old merchant leaves the stall unguarded at noon.",
+			"We grab that roast chicken, sprint through the alley, and meet back in the field. Fast.",
+			"Don't get caught. I'm serious. These people know how to throw things.",
+		},
+		[2] = {
+			"Right — we've cleared the harbor. The sea is open.",
+			"I found a map fragment on that crab. There's an island three days east — the Sunken Grotto.",
+			"Hoist the sails. Every hour counts.",
+		},
+		[3] = {
+			"That wasn't a storm. That was a warning.",
+			"The hull is cracked below the waterline — we patch it or we sink.",
+			"I'll man the helm. You handle the repairs. Do it NOW.",
+		},
+		[4] = {
+			"The pearls are down in the grotto. Old navigation charts say they unlock the treasure vault.",
+			"One problem: there's something large down there. Something that circles.",
+			"Dive fast. Collect all three. Don't linger.",
+		},
+		[5] = {
+			"That's the Crimson Revenge — Captain Dread's flagship.",
+			"He has the final chart piece. On his mast. Under his flag.",
+			"We board. We take the flag. We come back. Simple as that. Let's go.",
+		},
+	},
+	Rosa = {
+		[1] = {"I've got the distraction covered. Just follow Sam's signal and run.", "And don't trip this time."},
+		[2] = {"I spotted a crab the size of a wagon near the eastern rock.", "It's guarding something. Bring a weapon... or just improvise."},
+		[3] = {"I'm patching the sails. The mast is holding, barely.", "Get below and seal that leak before we take on more water."},
+		[4] = {"I'll keep the lantern lit on the bow. Three flashes means shark is near.", "Don't ignore three flashes."},
+		[5] = {"Dread's crew is skeleton-thin. They won't expect a frontal boarding.", "I'll swing in from starboard. Cover your flank."},
+	},
+	Jin = {
+		[1] = {"Reminds me of the merchant quarter back home.", "Though the chickens there were less... unguarded."},
+		[2] = {"First time past the reef. Feels different out here.", "Bigger. Quieter. I like it."},
+		[3] = {"I've sailed through worse. Once.", "...Actually no I haven't. Patch that hull fast."},
+		[4] = {"The grotto glows blue-green from here. Bioluminescent algae, maybe.", "Beautiful. Also terrifying."},
+		[5] = {"I've been waiting to face Dread since the harbour at Port Kiral.", "Today's the day."},
+	},
+}
+
 function WorldBuilderService.init(services)
-	local hungerService = services.HungerService
-	local storyService  = services.StoryService
-	local ws            = game:GetService("Workspace")
+	local hungerService  = services.HungerService
+	local storyService   = services.StoryService
+	local remoteService  = services.RemoteService
+	local ws             = game:GetService("Workspace")
+
+	local function fireDialogue(player, speaker, level)
+		local npcData = NPC_DIALOGUE[speaker]
+		if not npcData then return end
+		local profile = services.ProfileService.getProfile(player)
+		local lvl     = profile and math.clamp(profile.storyLevel, 1, 5) or 1
+		local lines   = npcData[lvl] or npcData[1]
+		remoteService.getRemote("ShowDialogue"):FireClient(player, {speaker=speaker, lines=lines})
+	end
 
 	local w = Instance.new("Folder")
 	w.Name   = "PirateWorld"
@@ -109,6 +206,8 @@ function WorldBuilderService.init(services)
 	local chicken = part("Chicken",   Vector3.new(3, 3, 3),    CFrame.new(-97,      19, 12), "White",          "SmoothPlastic",w)
 	chicken.Shape = Enum.PartType.Ball
 	billboard(chicken, "🍗 Roast Chicken", 4)
+	local chickenPP = prompt(chicken, "Grab", "Roast Chicken", 9)
+	chickenPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "steal_chicken") end)
 
 	-- ── field (Level 1 — meet_friends) ───────────────────────────────────────
 	part("Field",          Vector3.new(90, 4,  90),  CFrame.new(0,       14, 0),   "Bright green",   "Grass",     w)
@@ -117,11 +216,29 @@ function WorldBuilderService.init(services)
 		part("TreeTrunk"..tp[1], Vector3.new(4,22,4), CFrame.new(tp[1], 25, tp[3]), "Reddish brown", "WoodPlanks", w)
 		part("TreeTop" ..tp[1], Vector3.new(16,14,16),CFrame.new(tp[1], 42, tp[3]), "Bright green",  "Grass",      w)
 	end
-	-- crew NPCs (static colored block stand-ins)
-	local CREW = {{"Sam",    "Bright blue"}, {"Rosa",  "Bright red"},  {"Jin",   "Bright yellow"}}
+	-- crew NPCs — colored humanoid stand-ins with dialogue + quest trigger
+	local CREW = {
+		{name="Sam",  color="Bright blue",   isQuestNPC=true},
+		{name="Rosa", color="Bright red",    isQuestNPC=false},
+		{name="Jin",  color="Bright yellow", isQuestNPC=false},
+	}
 	for i, c in CREW do
-		part(c[1].."_NPC",  Vector3.new(3, 9, 3), CFrame.new(-18+(i*10), 21, -10), c[2], "SmoothPlastic", w)
-		billboard(w[c[1].."_NPC"], c[1], 5)
+		local npcPart = part(c.name.."_NPC", Vector3.new(4, 10, 4), CFrame.new(-18+(i*10), 21, -10), c.color, "SmoothPlastic", w)
+		billboard(npcPart, c.name, 7)
+		-- Eye-level dot
+		local eyeDot = part(c.name.."_Eyes", Vector3.new(2.5,1,0.5), CFrame.new(-18+(i*10), 26, -10+(-0.5)), "White", "Neon", w)
+		eyeDot.Transparency = 0
+		local npcPP = prompt(npcPart, "Talk", c.name, 11)
+		local cname = c.name
+		local isQN  = c.isQuestNPC
+		npcPP.Triggered:Connect(function(p)
+			-- Always show dialogue
+			fireDialogue(p, cname, nil)
+			-- Sam also advances meet_friends quest
+			if isQN then
+				storyService.handleQuestAction(services, p, "meet_friends")
+			end
+		end)
 	end
 
 	-- ── harbor & dock (Level 1 — board_ship, Level 2+) ───────────────────────
@@ -138,12 +255,25 @@ function WorldBuilderService.init(services)
 	part("ShipBow",      Vector3.new(22, 18, 22),   CFrame.new(165+22, 5, 0)*CFrame.Angles(0,0,-0.18),"Dark orange","WoodPlanks",w)
 	part("Mast",         Vector3.new(3,  55, 3),    CFrame.new(165,      46, 0),   "Reddish brown",  "WoodPlanks",  w)
 	part("Sail1",        Vector3.new(0.5,30, 20),   CFrame.new(165,      52, 0),   "White",          "Fabric",      w)
-	part("Crownest",     Vector3.new(8,   4, 8),    CFrame.new(165,      75, 0),   "Reddish brown",  "WoodPlanks",  w)   -- Level 2 zone
-	part("ShipWheel",    Vector3.new(4,   5, 1),    CFrame.new(152,      22, 0),   "Reddish brown",  "WoodPlanks",  w)
+	local crownest = part("Crownest", Vector3.new(8, 4, 8), CFrame.new(165, 75, 0), "Reddish brown", "Wood", w)
+	local crestPP = prompt(crownest, "Look Out", "Crow's Nest", 10)
+	crestPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "spot_treasure_map") end)
+	local shipWheel = part("ShipWheel", Vector3.new(4, 5, 1), CFrame.new(152, 22, 0), "Reddish brown", "Wood", w)
 	local wfl = Instance.new("PointLight")
 	wfl.Brightness = 3; wfl.Color = Color3.fromRGB(255, 200, 100); wfl.Range = 14
-	wfl.Parent = w.ShipWheel
+	wfl.Parent = shipWheel
 	part("ShipLantern",  Vector3.new(2, 3, 2),      CFrame.new(178,      23, 0),   "Bright yellow",  "Neon",        w)
+	local wheelPP = prompt(shipWheel, "Use", "Ship's Wheel", 10)
+	-- Wheel handles: board_ship (L1), hoist_sail (L2), man_the_helm (L3), claim_victory (L5)
+	wheelPP.Triggered:Connect(function(p)
+		local profile = services.ProfileService.getProfile(p)
+		if not profile then return end
+		local step = profile.storyLevel == 1 and "board_ship"
+			or profile.storyLevel == 2 and "hoist_sail"
+			or profile.storyLevel == 3 and "man_the_helm"
+			or profile.storyLevel == 5 and "claim_victory" or nil
+		if step then storyService.handleQuestAction(services, p, step) end
+	end)
 
 	-- eastern rock (Level 2 — fight_crab)
 	part("EasternRock",  Vector3.new(20, 14, 20),   CFrame.new(210,      10, -60),  "Medium stone grey","SmoothPlastic",w)
@@ -151,23 +281,47 @@ function WorldBuilderService.init(services)
 	-- crab prop
 	local crab = part("GiantCrab", Vector3.new(8, 5, 8), CFrame.new(210, 24, -60), "Bright red", "SmoothPlastic", w)
 	billboard(crab, "🦀 Giant Sand Crab", 5)
+	local crabPP = prompt(crab, "Fight!", "Giant Sand Crab", 12)
+	crabPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "fight_crab") end)
 
 	-- storm zone (Level 3)
 	part("StormMarker",  Vector3.new(10, 1, 10),    CFrame.new(250,      18, 0),   "Dark blue-violet","Neon",        w).Transparency = 0.5
-	part("HullLeak",     Vector3.new(5, 6, 5),      CFrame.new(168,      13, 10),  "Bright blue",    "Neon",        w).Transparency = 0.6
-	part("CalmCove",     Vector3.new(30, 4, 30),    CFrame.new(280,      14, 60),  "Bright blue",    "SmoothPlastic",w).Transparency = 0.55
+	local hullLeak = part("HullLeak", Vector3.new(5, 6, 5), CFrame.new(168, 13, 10), "Bright blue", "Neon", w)
+	hullLeak.Transparency = 0.45
+	billboard(hullLeak, "⚠️ Hull Breach!", 5)
+	local leakPP = prompt(hullLeak, "Patch", "Hull Breach", 9)
+	leakPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "patch_hull") end)
+	part("CalmCove", Vector3.new(30, 4, 30), CFrame.new(280, 14, 60), "Bright blue", "SmoothPlastic", w).Transparency = 0.55
 
 	-- grotto (Level 4)
-	part("GrottoEntrance",Vector3.new(20, 20, 20),  CFrame.new(160, 5, -90),      "Dark blue",      "SmoothPlastic",w).Transparency = 0.3
-	part("ReefPearls",    Vector3.new(12, 8, 12),   CFrame.new(185, 5, -100),     "Cyan",           "Neon",         w).Transparency = 0.5
-	part("EscapeLadder",  Vector3.new(3, 20, 3),    CFrame.new(155, 10, -80),     "Reddish brown",  "WoodPlanks",   w)
+	local grotto = part("GrottoEntrance", Vector3.new(20, 20, 20), CFrame.new(160, 5, -90), "Dark blue", "SmoothPlastic", w)
+	grotto.Transparency = 0.3
+	billboard(grotto, "🌊 Sunken Grotto", 12)
+	local grottoPP = prompt(grotto, "Dive In", "Sunken Grotto", 14)
+	grottoPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "dive_in") end)
+
+	local pearls = part("ReefPearls", Vector3.new(12, 8, 12), CFrame.new(185, 5, -100), "Cyan", "Neon", w)
+	pearls.Transparency = 0.35
+	billboard(pearls, "💎 Ancient Pearls", 6)
+	local pearlsPP = prompt(pearls, "Collect", "Glowing Pearls", 12)
+	pearlsPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "collect_pearls") end)
+
+	local ladder = part("EscapeLadder", Vector3.new(3, 20, 3), CFrame.new(155, 10, -80), "Reddish brown", "Wood", w)
+	billboard(ladder, "🏃 Escape Route!", 12)
+	local ladderPP = prompt(ladder, "Climb!", "Escape Ladder", 10)
+	ladderPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "escape_shark") end)
 
 	-- rival ship (Level 5)
 	part("RivalHull",    Vector3.new(44, 18, 22),   CFrame.new(330, 9, 60),       "Dark stone grey","WoodPlanks",   w)
 	part("RivalDeck",    Vector3.new(44, 3, 22),    CFrame.new(330, 19, 60),      "Medium stone grey","WoodPlanks", w)
 	part("RivalMast",    Vector3.new(3, 55, 3),     CFrame.new(330, 46, 60),      "Dark stone grey","WoodPlanks",   w)
-	part("RivalFlag",    Vector3.new(10, 7, 0.5),   CFrame.new(330, 76, 60),      "Bright red",     "Fabric",       w)
-	billboard(w.RivalFlag, "☠ Rival Flag", 5)
+	local rivalFlag = part("RivalFlag", Vector3.new(10, 7, 0.5), CFrame.new(330, 76, 60), "Bright red", "Fabric", w)
+	billboard(rivalFlag, "☠️ Rival Captain's Flag", 5)
+	local flagPP = prompt(rivalFlag, "Steal", "Rival Flag", 10)
+	flagPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "steal_flag") end)
+	-- Board rival: ProximityPrompt on rival deck
+	local boardRivalPP = prompt(w.RivalDeck, "Board!", "Rival Ship", 16)
+	boardRivalPP.Triggered:Connect(function(p) storyService.handleQuestAction(services, p, "board_rival") end)
 
 	-- ──────────────────────────────────────────────────────────────────────────
 	-- SPAWN LOCATION
@@ -248,20 +402,32 @@ function WorldBuilderService.init(services)
 
 	local eatDebounce = {}
 	for _, f in FOODS do
-		local fp = part(f.name, Vector3.new(3.5,3.5,3.5), CFrame.new(f.pos), f.color, "Neon", w)
+		local fp = part(f.name, Vector3.new(3.5, 3.5, 3.5), CFrame.new(f.pos), f.color, "Neon", w)
 		fp.Shape = Enum.PartType.Ball
-		-- gentle float animation via attached script
-		billboard(fp, f.name .. "  +" .. f.heal .. " 🍖", 3)
+		billboard(fp, f.name .. "  +" .. f.heal .. " Hunger", 3.5)
 
-		local heal = f.heal
+		local heal  = f.heal
+		local fname = f.name
+		local fpos  = tostring(f.pos)
+
+		-- ProximityPrompt (primary — press E)
+		local foodPP = prompt(fp, "Eat", f.name, 7)
+		foodPP.Triggered:Connect(function(p)
+			local key = p.UserId .. fname .. fpos
+			local now = tick()
+			if eatDebounce[key] and now - eatDebounce[key] < 6 then return end
+			eatDebounce[key] = now
+			hungerService.feedPlayer(services, p, heal)
+		end)
+		-- Touched fallback (walk through)
 		fp.Touched:Connect(function(hit)
 			local char = hit.Parent
 			local p    = Players:GetPlayerFromCharacter(char)
 			if not p then return end
+			local key  = p.UserId .. fname .. fpos
 			local now  = tick()
-			if eatDebounce[p.UserId .. f.name .. tostring(f.pos)] and
-			   now - eatDebounce[p.UserId .. f.name .. tostring(f.pos)] < 6 then return end
-			eatDebounce[p.UserId .. f.name .. tostring(f.pos)] = now
+			if eatDebounce[key] and now - eatDebounce[key] < 6 then return end
+			eatDebounce[key] = now
 			hungerService.feedPlayer(services, p, heal)
 		end)
 	end

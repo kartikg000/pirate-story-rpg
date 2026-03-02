@@ -120,6 +120,11 @@ function StoryService.handleQuestAction(services, player: Player, actionId: stri
 	if allDone then
 		services.ProfileService.incrementCoins(player, lvlDef.reward)
 		print(string.format("[StoryService] 🎉 Level %d complete! +%d coins → %s", profile.storyLevel, lvlDef.reward, player.Name))
+		-- Fire cinematic level-complete title card
+		local lcRemote = services.RemoteService.getRemote("LevelComplete")
+		if lcRemote then
+			lcRemote:FireClient(player, {title = lvlDef.title .. " — Complete!", reward = lvlDef.reward})
+		end
 		if profile.storyLevel < MAX_LEVEL then
 			task.wait(1.5)
 			profile.storyLevel = profile.storyLevel + 1
