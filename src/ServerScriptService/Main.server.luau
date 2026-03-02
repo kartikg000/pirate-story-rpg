@@ -8,6 +8,7 @@ local EconomyService = require(systemsFolder.EconomyService)
 local WeatherService = require(systemsFolder.WeatherService)
 local WorldStateService = require(systemsFolder.WorldStateService)
 local StoryService = require(systemsFolder.StoryService)
+local HungerService = require(systemsFolder.HungerService)
 
 local services = {
 	RemoteService = RemoteService,
@@ -20,11 +21,16 @@ ProfileService.startAutosaveLoop()
 EconomyService.init(services)
 WeatherService.init(services)
 StoryService.init(services)
+HungerService.init(services)
 
 Players.PlayerAdded:Connect(function(player)
 	ProfileService.loadProfile(player)
+	HungerService.sendCurrentState(services, player)
+	StoryService.sendCurrentState(services, player)
 end)
 
 for _, player in Players:GetPlayers() do
 	ProfileService.loadProfile(player)
+	HungerService.sendCurrentState(services, player)
+	StoryService.sendCurrentState(services, player)
 end
