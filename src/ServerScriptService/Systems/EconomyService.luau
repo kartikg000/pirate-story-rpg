@@ -4,11 +4,14 @@ local RemoteNames = require(ReplicatedStorage.Shared.Net.RemoteNames)
 
 local EconomyService = {}
 
+-- Prices in Berries (stored as profile.coins internally)
 local COSMETIC_PRICES = {
-	ocean_coat = 150,
-	captain_hat = 220,
-	storm_cloak = 300,
-	sun_gold_trim = 400,
+	straw_hat    = 0,     -- starter, free
+	red_vest     = 200,
+	gear2_aura   = 500,
+	gear4_coat   = 800,
+	jolly_roger  = 150,
+	wano_kimono  = 1000,
 }
 
 function EconomyService.init(services)

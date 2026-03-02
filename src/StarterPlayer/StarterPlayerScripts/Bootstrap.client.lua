@@ -12,7 +12,7 @@ if not playerGui then return end
 
 -- ── ScreenGui ─────────────────────────────────────────────────────────────────
 local sg            = Instance.new("ScreenGui")
-sg.Name             = "PirateHud"
+sg.Name             = "OnePieceHud"
 sg.ResetOnSpawn     = false
 sg.DisplayOrder     = 10
 sg.IgnoreGuiInset   = true
@@ -50,8 +50,8 @@ end
 -- BOTTOM-LEFT: Hunger + Coins stack
 -- ══════════════════════════════════════════════════════════════════════════════
 local bottomLeft = Instance.new("Frame")
-bottomLeft.Size               = UDim2.new(0, 240, 0, 90)
-bottomLeft.Position           = UDim2.new(0, 18, 1, -110)
+bottomLeft.Size               = UDim2.new(0, 240, 0, 132)
+bottomLeft.Position           = UDim2.new(0, 18, 1, -155)
 bottomLeft.BackgroundTransparency = 1
 bottomLeft.Parent             = sg
 
@@ -91,19 +91,33 @@ hungerNum.Size     = UDim2.new(0, 52, 1, 0)
 hungerNum.Position = UDim2.new(1, -54, 0, 0)
 hungerNum.TextXAlignment = Enum.TextXAlignment.Right
 
--- ── Coins panel ──────────────────────────────────────────────────────────────
+-- ── Coins / Berries panel ──────────────────────────────────────────────────
 local coinsPanel = panel("CoinsPanel", UDim2.new(1,0,0,36), UDim2.new(0,0,0,46), Color3.fromRGB(8,14,26), 0.12, bottomLeft)
 local coinsIcon = Instance.new("TextLabel")
 coinsIcon.Size             = UDim2.new(0, 28, 1, 0)
 coinsIcon.BackgroundTransparency = 1
-coinsIcon.Text             = "🪙"
+coinsIcon.Text             = "🧧"  -- moneybag (Berries)
 coinsIcon.TextSize         = 18
 coinsIcon.Font             = Enum.Font.GothamMedium
 coinsIcon.TextXAlignment   = Enum.TextXAlignment.Center
 coinsIcon.Parent           = coinsPanel
-local coinsLbl = label(coinsPanel, "50", 18, Color3.fromRGB(255, 215, 60), Enum.Font.GothamBold)
+local coinsLbl = label(coinsPanel, "50 Berries", 16, Color3.fromRGB(255, 215, 60), Enum.Font.GothamBold)
 coinsLbl.Size     = UDim2.new(1, -36, 1, 0)
 coinsLbl.Position = UDim2.fromOffset(32, 0)
+
+-- ── Bounty panel ─────────────────────────────────────────────────────────────
+local bountyPanel = panel("BountyPanel", UDim2.new(1,0,0,36), UDim2.new(0,0,0,88), Color3.fromRGB(20,8,8), 0.12, bottomLeft)
+local bountyIcon = Instance.new("TextLabel")
+bountyIcon.Size             = UDim2.new(0, 28, 1, 0)
+bountyIcon.BackgroundTransparency = 1
+bountyIcon.Text             = "☠️"
+bountyIcon.TextSize         = 16
+bountyIcon.Font             = Enum.Font.GothamMedium
+bountyIcon.TextXAlignment   = Enum.TextXAlignment.Center
+bountyIcon.Parent           = bountyPanel
+local bountyLbl = label(bountyPanel, "Bounty: 0", 14, Color3.fromRGB(255, 100, 60), Enum.Font.GothamBold)
+bountyLbl.Size     = UDim2.new(1, -36, 1, 0)
+bountyLbl.Position = UDim2.fromOffset(32, 0)
 
 -- ══════════════════════════════════════════════════════════════════════════════
 -- TOP-LEFT: Level badge
@@ -118,7 +132,7 @@ lvlAccent.BackgroundColor3 = Color3.fromRGB(255, 215, 60)
 lvlAccent.BorderSizePixel  = 0
 lvlAccent.Parent           = lvlPanel
 local lvlC = Instance.new("UICorner"); lvlC.CornerRadius = UDim.new(0,2); lvlC.Parent = lvlAccent
-local lvlTop = label(lvlPanel, "LEVEL", 9, Color3.fromRGB(160,170,200), Enum.Font.GothamBold)
+local lvlTop = label(lvlPanel, "ARC", 9, Color3.fromRGB(160,170,200), Enum.Font.GothamBold)
 lvlTop.Size     = UDim2.new(1, -18, 0, 16)
 lvlTop.Position = UDim2.fromOffset(16, 4)
 local lvlNum = label(lvlPanel, "1", 22, Color3.fromRGB(255, 215, 60), Enum.Font.GothamBold)
@@ -201,11 +215,19 @@ task.spawn(function()
 			end
 
 			if type(p.coins) == "number" then
-				coinsLbl.Text = tostring(math.floor(p.coins))
+				coinsLbl.Text = tostring(math.floor(p.coins)) .. " Berries"
 			end
 
 			if type(p.storyLevel) == "number" then
 				lvlNum.Text = tostring(p.storyLevel)
+			end
+
+			if type(p.bounty) == "number" then
+				local b = p.bounty
+				local display = b >= 1000000000 and string.format("%.1fB", b/1e9)
+					or b >= 1000000 and string.format("%.0fM", b/1e6)
+					or tostring(b)
+				bountyLbl.Text = "Bounty: ꩜" .. display
 			end
 		end)
 	end
@@ -222,7 +244,14 @@ task.spawn(function()
 				objText.TextColor3 = Color3.fromRGB(220, 226, 240)
 			end
 			if type(p.level) == "number" then
-				lvlNum.Text = tostring(p.level)
+				lvlNum.Text = tostring(p.arc or p.level)
+			end
+			if type(p.bounty) == "number" then
+				local b = p.bounty
+				local display = b >= 1000000000 and string.format("%.1fB", b/1e9)
+					or b >= 1000000 and string.format("%.0fM", b/1e6)
+					or tostring(b)
+				bountyLbl.Text = "Bounty: ꩜" .. display
 			end
 		end)
 	end
@@ -249,9 +278,9 @@ task.spawn(function()
 	local questRemote = remotes:WaitForChild("RequestQuestAction", 10)
 	if questRemote then
 		local DEBUG_KEYS = {
-			[Enum.KeyCode.One]   = "steal_chicken",
-			[Enum.KeyCode.Two]   = "meet_friends",
-			[Enum.KeyCode.Three] = "board_ship",
+			[Enum.KeyCode.One]   = "find_hat",
+			[Enum.KeyCode.Two]   = "meet_zoro",
+			[Enum.KeyCode.Three] = "recruit_usopp",
 		}
 		UserInputService.InputBegan:Connect(function(input, gp)
 			if gp then return end

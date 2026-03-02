@@ -7,6 +7,10 @@ local RemoteNames = {
 	StoryStateUpdated    = "StoryStateUpdated",
 	ShowDialogue         = "ShowDialogue",
 	LevelComplete        = "LevelComplete",
+	-- Power system (One Piece)
+	RequestUseAbility    = "RequestUseAbility",
+	PowerStateUpdated    = "PowerStateUpdated",
+	AbilityVfx           = "AbilityVfx",
 }
 
 return RemoteNames

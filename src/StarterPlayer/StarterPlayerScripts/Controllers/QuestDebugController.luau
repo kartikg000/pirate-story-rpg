@@ -6,9 +6,11 @@ local RemoteNames = require(ReplicatedStorage.Shared.Net.RemoteNames)
 local QuestDebugController = {}
 
 local ACTION_KEYS = {
-	[Enum.KeyCode.One] = "steal_chicken",
-	[Enum.KeyCode.Two] = "meet_friends",
-	[Enum.KeyCode.Three] = "board_ship",
+	[Enum.KeyCode.One]   = "find_hat",
+	[Enum.KeyCode.Two]   = "meet_zoro",
+	[Enum.KeyCode.Three] = "recruit_usopp",
+	[Enum.KeyCode.Four]  = "stop_krieg",
+	[Enum.KeyCode.Five]  = "recruit_sanji",
 }
 
 function QuestDebugController.start()

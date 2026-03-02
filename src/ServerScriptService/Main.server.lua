@@ -11,6 +11,7 @@ local StoryService          = require(systemsFolder.StoryService)
 local HungerService         = require(systemsFolder.HungerService)
 local WorldBuilderService   = require(systemsFolder.WorldBuilderService)
 local CinematicLightingService = require(systemsFolder.CinematicLightingService)
+local PowerService          = require(systemsFolder.PowerService)
 
 local services = {
 	RemoteService       = RemoteService,
@@ -18,9 +19,10 @@ local services = {
 	WorldStateService   = WorldStateService,
 	HungerService       = HungerService,
 	StoryService        = StoryService,
+	PowerService        = PowerService,
 }
 
-print("[MainServer] Booting PirateStoryRPG services...")
+print("[MainServer] Booting One Piece RPG services...")
 
 local function safeInit(name, fn)
 	local ok, err = pcall(fn)
@@ -39,6 +41,7 @@ safeInit("WeatherService",       function() WeatherService.init(services) end)
 safeInit("StoryService",         function() StoryService.init(services) end)
 safeInit("HungerService",        function() HungerService.init(services) end)
 safeInit("WorldBuilderService",  function() WorldBuilderService.init(services) end)
+safeInit("PowerService",         function() PowerService.init(services) end)
 
 print("[MainServer] All services initialised")
 

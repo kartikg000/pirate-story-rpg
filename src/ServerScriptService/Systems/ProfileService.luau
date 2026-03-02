@@ -30,10 +30,12 @@ local function defaultProfile()
 	return {
 		coins = GameConfig.StarterCoins,
 		hunger = GameConfig.MaxHunger,
+		bounty = 0,
 		unlockedCosmetics = {
+			straw_hat = true,
 			starter_bandana = true,
 		},
-		equippedCosmetic = "starter_bandana",
+		equippedCosmetic = "straw_hat",
 		storyLevel = 1,
 		storyFlags = {},
 		lastLoginUnix = os.time(),
